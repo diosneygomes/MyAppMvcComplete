@@ -41,6 +41,9 @@ namespace DevIO.Data.Migrations
                         .IsRequired()
                         .HasColumnType("varchar(50)");
 
+                    b.Property<Guid>("ProviderId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("State")
                         .IsRequired()
                         .HasColumnType("varchar(50)");
@@ -53,12 +56,9 @@ namespace DevIO.Data.Migrations
                         .IsRequired()
                         .HasColumnType("varchar(8)");
 
-                    b.Property<Guid>("providerId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("providerId")
+                    b.HasIndex("ProviderId")
                         .IsUnique();
 
                     b.ToTable("Addresses");
@@ -69,6 +69,9 @@ namespace DevIO.Data.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -127,7 +130,7 @@ namespace DevIO.Data.Migrations
                 {
                     b.HasOne("DevIO.Business.Models.Provider", "Provider")
                         .WithOne("Address")
-                        .HasForeignKey("DevIO.Business.Models.Address", "providerId")
+                        .HasForeignKey("DevIO.Business.Models.Address", "ProviderId")
                         .IsRequired();
                 });
 

@@ -16,6 +16,6 @@ namespace DevIO.Business.Models
 
         /*EF Relation*/
         public Provider Provider { get; set; }
-        public Guid providerId { get; set; }
+        public Guid ProviderId { get; set; }
     }
 }

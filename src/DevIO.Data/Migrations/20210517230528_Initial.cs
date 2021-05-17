@@ -34,14 +34,14 @@ namespace DevIO.Data.Migrations
                     Street = table.Column<string>(type: "varchar(200)", nullable: false),
                     Number = table.Column<string>(type: "varchar(50)", nullable: false),
                     Complement = table.Column<string>(type: "varchar(250)", nullable: false),
-                    providerId = table.Column<Guid>(nullable: false)
+                    ProviderId = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Addresses", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Addresses_Providers_providerId",
-                        column: x => x.providerId,
+                        name: "FK_Addresses_Providers_ProviderId",
+                        column: x => x.ProviderId,
                         principalTable: "Providers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
@@ -56,6 +56,7 @@ namespace DevIO.Data.Migrations
                     Description = table.Column<string>(type: "varchar(1000)", nullable: false),
                     Image = table.Column<string>(type: "varchar(100)", nullable: false),
                     Price = table.Column<decimal>(nullable: false),
+                    Active = table.Column<bool>(nullable: false),
                     RegistraionDate = table.Column<DateTime>(nullable: false),
                     ProviderId = table.Column<Guid>(nullable: false)
                 },
@@ -71,9 +72,9 @@ namespace DevIO.Data.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Addresses_providerId",
+                name: "IX_Addresses_ProviderId",
                 table: "Addresses",
-                column: "providerId",
+                column: "ProviderId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
