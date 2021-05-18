@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
@@ -33,6 +34,8 @@ namespace DevIO.App.ViewModels
 
         [ScaffoldColumn(false)]
         public DateTime RegistraionDate { get; set; }
+
+        public IEnumerable<ProviderViewModel> Providers { get; set; }
 
         /* EF Relation */
         public ProviderViewModel Provider { get; set; }
