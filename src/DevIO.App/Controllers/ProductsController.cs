@@ -10,6 +10,8 @@ using DevIO.App.ViewModels;
 using DevIO.Business.Interfaces;
 using AutoMapper;
 using DevIO.Business.Models;
+using Microsoft.AspNetCore.Http;
+using System.IO;
 
 namespace DevIO.App.Controllers
 {
@@ -54,9 +56,17 @@ namespace DevIO.App.Controllers
 
             if (!ModelState.IsValid) return View(productViewModel);
 
+            var imgPrefix = Guid.NewGuid() + "_";
+            if (! await FileUploadAsync(productViewModel.ImageUpload, imgPrefix))
+            {
+                return View(productViewModel);
+            }
+
+            productViewModel.Image = imgPrefix + productViewModel.ImageUpload.FileName;              
+
             await _productRepository.AddAsync(_mapper.Map<Product>(productViewModel));
 
-            return View(productViewModel);
+            return RedirectToAction("Index");
         }
 
         public async Task<IActionResult> Edit(Guid id)
@@ -72,10 +82,30 @@ namespace DevIO.App.Controllers
         public async Task<IActionResult> Edit(Guid id, ProductViewModel productViewModel)
         {
             if (id != productViewModel.Id) return NotFound();
-            
+
+            var productUpdate = await GetProduct(id);
+            productViewModel.Provider = productUpdate.Provider;
+            productViewModel.Image = productUpdate.Image;
+
             if (!ModelState.IsValid) return View(productViewModel);
 
-            await _productRepository.UpdateAsync(_mapper.Map<Product>(productViewModel));
+            if (productViewModel.ImageUpload != null)
+            {
+                var imgPrefix = Guid.NewGuid() + "_";
+                if (!await FileUploadAsync(productViewModel.ImageUpload, imgPrefix))
+                {
+                    return View(productViewModel);
+                }
+                productUpdate.Image = imgPrefix + productViewModel.ImageUpload.FileName;
+            }
+
+            productUpdate.Name = productViewModel.Name;
+            productUpdate.Description = productViewModel.Description;
+            productUpdate.Price = productViewModel.Price;
+            productUpdate.Active = productViewModel.Active;
+
+
+            await _productRepository.UpdateAsync(_mapper.Map<Product>(productUpdate));
 
             return RedirectToAction("Index");
         }
@@ -114,6 +144,25 @@ namespace DevIO.App.Controllers
         {
             productViewModel.Providers = _mapper.Map<IEnumerable<ProviderViewModel>>(await _providerRepository.GetAllAsync());
             return productViewModel;
+        }
+
+        private async Task<bool> FileUploadAsync(IFormFile file, string imgPrefix)
+        {
+            if (file.Length <= 0) return false;
+
+            var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", imgPrefix + file.FileName);
+
+            if (System.IO.File.Exists(path))
+            {
+                ModelState.AddModelError(string.Empty,"Já existe um arquivo com este nome!");
+                return false;
+            }
+
+            using (var stream = new FileStream(path, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);        
+            }
+            return true;
         }
     }
 }

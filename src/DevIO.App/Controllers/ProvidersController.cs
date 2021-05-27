@@ -12,10 +12,12 @@ namespace DevIO.App.Controllers
     public class ProvidersController : BaseController
     {
         private readonly IProviderRepository _providerRepository;
+        private readonly IAddressRepository _addressRepository;
         private readonly IMapper _mapper;
-        public ProvidersController(IProviderRepository providerRepository, IMapper mapper)
+        public ProvidersController(IProviderRepository providerRepository, IAddressRepository addressRepository, IMapper mapper)
         {
             _providerRepository = providerRepository;
+            _addressRepository = addressRepository;
             _mapper = mapper;
         }
 
@@ -101,6 +103,45 @@ namespace DevIO.App.Controllers
             await _providerRepository.RemoveAsync(id);
 
             return RedirectToAction("Index");
+        }
+
+        public async Task<IActionResult> AddressUpdateAsync(Guid id)
+        {
+            var provider = await GetAddressProvider(id);
+
+            if (provider == null)
+            {
+                return NotFound();
+            }
+
+            return PartialView("_AddressUpdate", new ProviderViewModel { Address = provider.Address });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddressUpdateAsync(ProviderViewModel providerViewModel)
+        {
+            ModelState.Remove("Name");
+            ModelState.Remove("Document");
+
+            if (!ModelState.IsValid) return PartialView("_AddressUpdate", providerViewModel);
+
+            await _addressRepository.UpdateAsync(_mapper.Map<Address>(providerViewModel.Address));
+
+            var url = Url.Action("GetAddress", "Providers", new { id = providerViewModel.Address.ProviderId });
+            return Json(new {success = true, url });
+        }
+
+        public async Task<IActionResult> GetAddress(Guid id)
+        {
+            var provider = await GetAddressProvider(id);
+
+            if (provider == null)
+            {
+                return NotFound();
+            }
+
+            return PartialView("_AddressDetails", provider);
         }
 
         private async Task<ProviderViewModel> GetAddressProvider(Guid id)
