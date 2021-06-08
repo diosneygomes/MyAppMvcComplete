@@ -12,20 +12,22 @@ namespace DevIO.App.Controllers
     public class ProvidersController : BaseController
     {
         private readonly IProviderRepository _providerRepository;
-        private readonly IAddressRepository _addressRepository;
+        private readonly IProviderService _providerService;
         private readonly IMapper _mapper;
-        public ProvidersController(IProviderRepository providerRepository, IAddressRepository addressRepository, IMapper mapper)
+        public ProvidersController(IProviderRepository providerRepository, IProviderService providerService, INotifier notifier ,IMapper mapper) : base (notifier)
         {
             _providerRepository = providerRepository;
-            _addressRepository = addressRepository;
+            _providerService = providerService;
             _mapper = mapper;
         }
 
+        [Route("lista-de-fornecedores")]
         public async Task<IActionResult> Index()
         {
             return View(_mapper.Map<IEnumerable<ProviderViewModel>>(await _providerRepository.GetAllAsync()));
         }
 
+        [Route("dados-do-fornecedor/{id:guid}")]
         public async Task<IActionResult> Details(Guid id)
         {
             var providerViewModel = await GetAddressProvider(id);
@@ -38,11 +40,13 @@ namespace DevIO.App.Controllers
             return View(providerViewModel);
         }
 
+        [Route("novo-fornecedor")]
         public IActionResult Create()
         {
             return View();
         }
 
+        [Route("novo-fornecedor")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ProviderViewModel providerViewModel)
@@ -51,11 +55,14 @@ namespace DevIO.App.Controllers
             
             var provider = _mapper.Map<Provider>(providerViewModel);
             
-            await _providerRepository.AddAsync(provider);
+            await _providerService.AddAsync(provider);
+
+            if (!ValidOperation()) return View(providerViewModel);
             
             return RedirectToAction("Index");
         }
 
+        [Route("editar-fornecedor/{id:guid}")]
         public async Task<IActionResult> Edit(Guid id)
         {
             var providerViewModel = await GetAddressProductsProvider(id);
@@ -68,6 +75,7 @@ namespace DevIO.App.Controllers
             return View(providerViewModel);
         }
 
+        [Route("editar-fornecedor/{id:guid}")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Guid id, ProviderViewModel providerViewModel)
@@ -76,13 +84,16 @@ namespace DevIO.App.Controllers
 
             if (!ModelState.IsValid) return View(providerViewModel);
             
-            var provider = _mapper.Map<Provider>(providerViewModel);
+            var provider = _mapper.Map<Provider>(providerViewModel);    
 
-            await _providerRepository.UpdateAsync(provider);
+            await _providerService.UpdateAsync(provider);
+
+            if (!ValidOperation()) return View(await GetAddressProductsProvider(id));
 
             return RedirectToAction("Index");
         }
 
+        [Route("excluir-fornecedor/{id:guid}")]
         public async Task<IActionResult> Delete(Guid id)
         {
             var providerViewModel = await GetAddressProvider(id);
@@ -92,6 +103,7 @@ namespace DevIO.App.Controllers
             return View(providerViewModel);
         }
 
+        [Route("excluir-fornecedor/{id:guid}")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
@@ -100,11 +112,14 @@ namespace DevIO.App.Controllers
 
             if (providerViewModel == null) return NotFound();
 
-            await _providerRepository.RemoveAsync(id);
+            await _providerService.RemoveAsync(id);
+
+            if (!ValidOperation()) return View(providerViewModel);
 
             return RedirectToAction("Index");
         }
-
+        
+        [Route("atualizar-endereco-fornecedor/{id:guid}")]
         public async Task<IActionResult> AddressUpdateAsync(Guid id)
         {
             var provider = await GetAddressProvider(id);
@@ -117,6 +132,7 @@ namespace DevIO.App.Controllers
             return PartialView("_AddressUpdate", new ProviderViewModel { Address = provider.Address });
         }
 
+        [Route("atualizar-endereco-fornecedor/{id:guid}")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddressUpdateAsync(ProviderViewModel providerViewModel)
@@ -126,12 +142,15 @@ namespace DevIO.App.Controllers
 
             if (!ModelState.IsValid) return PartialView("_AddressUpdate", providerViewModel);
 
-            await _addressRepository.UpdateAsync(_mapper.Map<Address>(providerViewModel.Address));
+            await _providerService.AddressUpdateAsync(_mapper.Map<Address>(providerViewModel.Address));
+
+            if (!ValidOperation()) return PartialView("_AddressUpdate", providerViewModel);
 
             var url = Url.Action("GetAddress", "Providers", new { id = providerViewModel.Address.ProviderId });
             return Json(new {success = true, url });
         }
 
+        [Route("obter-endereco-fornecedor/{id:guid}")]
         public async Task<IActionResult> GetAddress(Guid id)
         {
             var provider = await GetAddressProvider(id);

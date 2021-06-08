@@ -1,3 +1,4 @@
+using DevIO.App.Configurations;
 using DevIO.App.Data;
 using DevIO.App.Extensions;
 using DevIO.Business.Interfaces;
@@ -24,36 +25,40 @@ namespace DevIO.App
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
-        {
-            Configuration = configuration;
-        }
-
         public IConfiguration Configuration { get; }
+
+        public Startup(IHostEnvironment hostEnvironment)
+        {
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(hostEnvironment.ContentRootPath)
+                .AddJsonFile("appsettings.json", true, true)
+                .AddJsonFile($"appsettings.{hostEnvironment.EnvironmentName}.json", true, true)
+                .AddEnvironmentVariables();
+
+            if (hostEnvironment.IsDevelopment())
+            {
+                builder.AddUserSecrets<Startup>();
+            }
+
+            Configuration = builder.Build();
+        }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(
-                    Configuration.GetConnectionString("DefaultConnection")));
+            services.AddIdentityConfiguration(Configuration);
 
             services.AddDbContext<MyDbContext>(options =>
                 options.UseSqlServer(
                     Configuration.GetConnectionString("DefaultConnection")));
 
-
-            services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-                .AddEntityFrameworkStores<ApplicationDbContext>();
             services.AddControllersWithViews();
             services.AddRazorPages();
 
             services.AddAutoMapper(typeof(Startup));
-            services.AddScoped<MyDbContext>();
-            services.AddScoped<IProductRepository, ProductRepository>();
-            services.AddScoped<IProviderRepository, ProviderRepository>();
-            services.AddScoped<IAddressRepository, AddressRepository>();
-            services.AddSingleton<IValidationAttributeAdapterProvider,CoinValidationAttributeAdapterProvider>();
+           
+            services.AddMvcConfiguration();
+            services.ResolveDependencies();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -78,16 +83,7 @@ namespace DevIO.App
             app.UseAuthentication();
             app.UseAuthorization();
 
-            var defaultCulture = new CultureInfo("pt-BR");
-
-            var localizationOptions = new RequestLocalizationOptions
-            {
-                DefaultRequestCulture = new RequestCulture(defaultCulture),
-                SupportedCultures = new List<CultureInfo> { defaultCulture },
-                SupportedUICultures = new List<CultureInfo> { defaultCulture }
-            };
-
-            app.UseRequestLocalization(localizationOptions);
+            app.UseGlobalizationConfig();
 
             app.UseEndpoints(endpoints =>
             {
