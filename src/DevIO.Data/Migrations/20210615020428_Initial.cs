@@ -33,7 +33,7 @@ namespace DevIO.Data.Migrations
                     Neighborhood = table.Column<string>(type: "varchar(100)", nullable: false),
                     Street = table.Column<string>(type: "varchar(200)", nullable: false),
                     Number = table.Column<string>(type: "varchar(50)", nullable: false),
-                    Complement = table.Column<string>(type: "varchar(250)", nullable: false),
+                    Complement = table.Column<string>(type: "varchar(250)", nullable: true),
                     ProviderId = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>

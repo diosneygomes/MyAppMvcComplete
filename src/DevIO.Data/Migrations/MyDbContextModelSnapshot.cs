@@ -30,7 +30,6 @@ namespace DevIO.Data.Migrations
                         .HasColumnType("varchar(200)");
 
                     b.Property<string>("Complement")
-                        .IsRequired()
                         .HasColumnType("varchar(250)");
 
                     b.Property<string>("Neighborhood")

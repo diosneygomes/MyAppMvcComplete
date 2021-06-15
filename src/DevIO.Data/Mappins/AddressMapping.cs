@@ -35,7 +35,6 @@ namespace DevIO.Data.Mappins
                 .HasColumnType("varchar(50)");
 
             builder.Property(p => p.Complement)
-                .IsRequired()
                 .HasColumnType("varchar(250)");
 
             builder.ToTable("Addresses");

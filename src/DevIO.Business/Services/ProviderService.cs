@@ -44,10 +44,18 @@ namespace DevIO.Business.Services
 
         public async Task RemoveAsync(Guid id)
         {
-            if (_providerRepository.GetAddressProviderAsync(id).Result.Products.Any())
+            if (_providerRepository.GetProductsAddressProviderAsync(id).Result.Products.Any())
             {
                 Notify("O Fornecedor possui produtos cadastrados!");
                 return;
+            }
+
+            //var endereco = await _enderecoRepository.ObterEnderecoPorFornecedor(id);
+            var address = await _addressRepository.GetAddressByProviderAsync(id);
+
+            if (address != null)
+            {
+                await _addressRepository.RemoveAsync(address.Id);
             }
 
             await _providerRepository.RemoveAsync(id);

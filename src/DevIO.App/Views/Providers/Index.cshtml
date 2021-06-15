@@ -41,7 +41,7 @@
             <td class="text-right">
                 <a class="btn btn-info" asp-action="Details" asp-route-id="@item.Id"><span class="fa fa-search" /></a>
                 <a class="btn btn-warning" asp-action="Edit" asp-route-id="@item.Id"><span class="fa fa-pencil-alt" /></a>
-                <a class="btn btn-danger" asp-action="Delete" asp-route-id="@item.Id"><span class="fa fa-trash" /></a>
+                <a class="btn btn-danger" supress-by-claim-name="Providers" supress-by-claim-value="Delete" asp-action="Delete" asp-route-id="@item.Id"><span class="fa fa-trash" /></a>
             </td>
         </tr>
 }
